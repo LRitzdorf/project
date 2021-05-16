@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys, argparse
+import sys
+import argparse
 
 LINUX = 1
 MACOS = 2
@@ -35,7 +36,7 @@ def parse_config(path):
                 line = line.split('$')
                 for name in line[0].split():
                     platforms[name.strip()] = [part.strip() for part in line[1:]]
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         print(f'Could not find configuration file at {path}. Please ensure it is filled - without a configuration, '
               'Project is likely to be almost useless.')
     except Exception as e:
@@ -54,9 +55,9 @@ def main(args):
     parser.add_argument('name', metavar='ProjectName', type=str, nargs='+')
 
     os = get_os()
-    platforms, templates = parse_config('./project.conf')
-    if not templates:
-        templates = '~/.project/templates/'
+    platforms, template_path = parse_config('./project.conf')
+    if not template_path:
+        template_path = '~/.project/templates/'
 
     # TODO: Add args from config file to parser
 
