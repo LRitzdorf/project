@@ -44,7 +44,7 @@ def build_parser(names, platforms):
     parser = argparse.ArgumentParser(description='''
                                         Sets up a new project folder, complete with a variety of template files, or even
                                         a Git/GitHub repo. All options below are controlled via the config file.''',
-                                     epilog='Feel free to contribute at https://github.com/LRitzdorf/project!')
+                                     epilog='Feel free to contribute at https://github.com/LRitzdorf/project !')
     parser.add_argument('name', metavar='ProjectName', type=str, nargs='?', default='NewProject',
                         help='Name of the project to create (default: %(default)s)')
 
