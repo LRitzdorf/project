@@ -1,0 +1,10 @@
+    if error: no-config error
+Load configured platforms from file
+    if help or error: help with details
+Load desired platforms
+Process platform relations
+    if changes: inform user
+    (have final platform list)
+Plug in substitutions
+Run platform setups (TODO: figure out how to reuse a session after "run()"ing a single command)
+
