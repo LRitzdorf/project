@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import typing
-from os.path import expanduser
+from os.path import expanduser, isfile, isdir
 import argparse
 # import re
-# import shutil
+from os import getcwd, mkdir
+import shutil
 
 
 class ExtendWithDefaultAction(argparse.Action):
@@ -101,10 +102,6 @@ def build_parser(names: list[str], platforms: dict[str, list[str]]) -> tuple[arg
                     parser.add_argument('-' + name_list[0], '-' + name_list[1],
                                         action=ExtendWithDefaultAction, default_extend='',
                                         nargs=nargs, type=str, metavar=meta)
-            # TODO
-            # >>> p.parse_args(['-foo', 'example', '-foo', 'again', '-f'])
-            # Namespace(foo=['example', 'again', None])
-            # vars(result)['foo'] -> ['example', 'again', None]
         except argparse.ArgumentError as e:
             err = 4
             print(f'Error while loading configured platforms:\n"{e.message}".\nThis usually occurs when you configure '
@@ -119,7 +116,7 @@ def process_platforms(args: dict[str, typing.Any], platforms: dict[str, list[str
     err = 0
     requested_platforms = set()
     for platform, value in args.items():
-        if value is not None:
+        if value not in (None, False):
             requested_platforms.add(platform)
     necessary_platforms = requested_platforms.copy()
     for platform in requested_platforms:
@@ -129,15 +126,40 @@ def process_platforms(args: dict[str, typing.Any], platforms: dict[str, list[str
     return args, err
 
 
-def create_templates(args, platforms, template_path) -> int:
+def create_templates(args: dict[str, typing.Any], platforms: dict[str, list[str]], template_path: str, target: str)\
+        -> int:
     err = 0
-    # Be sure to notify user of progress if error occurs
-    print('We are the knights who say NI!\n(It means "Not Implemented")')
+    try:
+        mkdir(target)
+    except FileExistsError:
+        print('The project folder you are trying to create already exists. This creation utility will only add files, '
+              'so we can continue, but be aware that we are adding to an existing directory.')
     for platform, value in args.items():
-        # if value is None:
-        #     pass
-        # else:
-        print(platform, value, sep='\t')  # Replace with real processing
+        if platform == 'ProjectName':
+            continue
+        if not hasattr(value, '__iter__'):
+            value = [value]
+        for action in value:
+            if '{' in (config_entry := platforms[platform][0]):
+                action = config_entry.format(action)
+            else:
+                action = config_entry.replace('template', action)
+            if type(action) == str and action.startswith('>'):
+                # TODO Shell command
+                print('Shell command:', action[1:])
+            else:
+                path = template_path + action
+                try:
+                    print(platform, action, target, sep='\t')  # Replace with real processing
+                    # if isfile(path):
+                    #     shutil.copy2(path, target)
+                    # elif isdir(path):
+                    #     shutil.copytree(path, target)
+                    # else:
+                    #     print('Could not determine proper action for item at:', path, '- please ensure it is a file or '
+                    #           'directory, and try again.')
+                except shutil.Error as e:
+                    print('Errors occurred during file operation:', '\n'.join(e.args), sep='\n')
     return err
 
 
@@ -163,7 +185,10 @@ def main():
     args, err = process_platforms(args, platforms)
 
     # Create templates for each platform listed in args
-    err = create_templates(args, platforms, template_path)
+    target = getcwd() + '/'
+    if proj := args.get('ProjectName'):
+        target += proj
+    err = create_templates(args, platforms, template_path, target)
     if err:
         return err
 
